@@ -37,4 +37,5 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
-          args: --file=package.json --package-manager=npm
+     with:
+  args: --severity-threshold=high --debug
