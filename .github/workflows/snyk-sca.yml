@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [master]
 
+permissions:
+  contents: read
+
 jobs:
   snyk-scan:
     runs-on: ubuntu-latest
@@ -21,15 +24,20 @@ jobs:
           node-version: 24
 
       - name: Install Snyk CLI
-        run: npm install -g snyk
+        run: npm install --global snyk
+
+      - name: Check Snyk authentication
+        run: snyk auth
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk SCA Scan
-        run: snyk test --file=package.json --package-manager=npm --severity-threshold=high
+        run: snyk test --file=package.json --package-manager=npm --severity-threshold=high -d
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk Monitor
-        if: success() && github.ref == 'refs/heads/master'
+        if: always() && github.ref == 'refs/heads/master'
         run: snyk monitor --file=package.json --package-manager=npm
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
