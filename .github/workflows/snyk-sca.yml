@@ -10,25 +10,26 @@ on:
 jobs:
   snyk-scan:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Use Node.js
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
 
-      - run: npm ci --ignore-scripts
+      - name: Install Snyk CLI
+        run: npm install -g snyk
 
       - name: Snyk SCA Scan
-        uses: snyk/actions/node@master
+        run: snyk test --file=package.json --package-manager=npm --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
 
       - name: Snyk Monitor
-        run: npx snyk monitor
+        if: success() && github.ref == 'refs/heads/master'
+        run: snyk monitor --file=package.json --package-manager=npm
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        if: github.ref == 'refs/heads/master'
